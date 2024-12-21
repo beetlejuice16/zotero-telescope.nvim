@@ -100,6 +100,12 @@ end
 M.setup = function(opts)
   default_opts = vim.tbl_deep_extend('force', default_opts, opts)
 
+  vim.api.nvim_create_user_command(
+    'ZoteroTelescope',
+    "lua require('zotero-telescope').zotero_telescoper()",
+    {}
+  )
+
 end
 
 return M
