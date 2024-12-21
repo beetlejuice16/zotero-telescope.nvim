@@ -1,7 +1,5 @@
 name: Ci
-
 on: [push]
-
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -13,8 +11,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           version: latest
           args: --check .
-
-
   docs:
     runs-on: ubuntu-latest
     name: pandoc to vimdoc
@@ -24,7 +20,7 @@ jobs:
       - name: panvimdoc
         uses: kdheepak/panvimdoc@main
         with:
-          vimdoc: nvim-plugin-template
+          vimdoc: zotero-telescope
           treesitter: true
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
@@ -32,7 +28,6 @@ jobs:
           commit_user_name: "github-actions[bot]"
           commit_user_email: "github-actions[bot]@users.noreply.github.com"
           commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
-
   test:
     name: Run Test
     runs-on: ${{ matrix.os }}
@@ -46,15 +41,12 @@ jobs:
         with:
           neovim: true
           version: nightly
-
       - name: luajit
         uses: leafo/gh-actions-lua@v10
         with:
           luaVersion: "luajit-openresty"
-
       - name: luarocks
         uses: leafo/gh-actions-luarocks@v4
-
       - name: run test
         shell: bash
         run: |
