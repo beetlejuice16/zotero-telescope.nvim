@@ -1,4 +1,4 @@
-*nvim-plugin-template.txt*    For NVIM v0.8.0    Last change: 2024 December 16
+*nvim-plugin-template.txt*    For NVIM v0.8.0    Last change: 2024 December 21
 
 ==============================================================================
 Table of Contents                     *nvim-plugin-template-table-of-contents*
