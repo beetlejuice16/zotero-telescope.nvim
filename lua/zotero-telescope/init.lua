@@ -10,14 +10,17 @@ local utils = require('telescope.previewers.utils')
 log.level = 'debug'
 local M = {}
 
+local default_opts = {
+  base_url = 'http://localhost:23119/api/users/0',
+  resources = '/items/top',
+  parameters = '?sort=dateModified',
+}
+
 ---@param base_url? string Default: "http://localhost:23119/api/users/0"
 ---@param resources? string Default: "/items/top" see [zotero web api docs](https://www.zotero.org/support/dev/web_api/v3/basics#resources)
 ---@param parameters? string Default: "?&sort=dateModified" see section on [url parameters](https://www.zotero.org/support/dev/web_api/v3/basics#read_requests)
 ---@return table
 M._get_zotero_data = function(base_url, resources, parameters)
-  local base_url = base_url or 'http://localhost:23119/api/users/0'
-  local resources = resources or '/items/top'
-  local parameters = parameters or '?sort=dateModified'
   local api_endpoint = base_url .. resources .. parameters
   local response = curl.get(api_endpoint)
   local data = response.body
@@ -25,11 +28,15 @@ M._get_zotero_data = function(base_url, resources, parameters)
   return parsed_data
 end
 
-M.show_zotero_bib = function(opts)
+M.zotero_telescoper = function(opts)
   pickers
     .new(opts, {
       finder = finders.new_table({
-        results = M._get_zotero_data(),
+        results = M._get_zotero_data(
+          default_opts.base_url,
+          default_opts.resources,
+          default_opts.parameters
+        ),
         entry_maker = function(entry)
           local display = entry.data.title
           local creators = entry.data.creators
@@ -91,7 +98,8 @@ M.show_zotero_bib = function(opts)
 end
 
 M.setup = function(opts)
-  print('Options:', opts)
+  default_opts = vim.tbl_deep_extend('force', default_opts, opts)
+
 end
 
 return M
