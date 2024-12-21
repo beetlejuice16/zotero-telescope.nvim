@@ -2,6 +2,12 @@
 
 Search through your zotero library with telescope. Uses the endpoint from the [newly added](https://groups.google.com/g/zotero-dev/c/ElvHhIFAXrY/m/fA7SKKwsAgAJ) local http server from zotero. Check out the [docs](https://www.zotero.org/support/dev/web_api/v3/basics) for ways to manipulate the api call.
 
+## Acknowledgements
+
+Shout out to @krisajenkins https://github.com/krisajenkins for the great [youtube video](https://www.youtube.com/watch?v=HXABdG3xJW4&t=183s) that is the basis of this project.
+
+Also shout out to @tjdevries https://github.com/tjdevries for the amazing [`telescope`](https://github.com/nvim-telescope/telescope.nvim) plugin and the extremely helpful [youtube video](https://www.youtube.com/watch?v=xdXE1tOT-qg).
+
 ## Installation
 
 ### Lazy
