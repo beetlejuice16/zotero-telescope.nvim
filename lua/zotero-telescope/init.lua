@@ -105,6 +105,7 @@ M.zotero_telescoper = function(opts)
           utils.highlighter(self.state.bufnr, 'markdown')
         end,
       }),
+      -- TODO: Think of command for vanilla zotero search
       attach_mappings = function(prompt_bufnr)
         actions.select_default:replace(function()
           local selection = actions_state.get_selected_entry()
@@ -118,6 +119,7 @@ M.zotero_telescoper = function(opts)
 end
 
 M.setup = function(opts)
+  -- TODO: Improve on how the function calls accept parameters from the user
   default_opts = vim.tbl_deep_extend('force', default_opts, opts)
 
   vim.api.nvim_create_user_command('ZoteroTelescope', function()
