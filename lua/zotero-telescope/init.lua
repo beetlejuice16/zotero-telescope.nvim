@@ -30,7 +30,7 @@ end
 
 M.zotero_telescoper = function(opts)
   pickers
-    .new(opts, {
+    .new({}, {
       finder = finders.new_table({
         results = M._get_zotero_data(
           default_opts.base_url,
@@ -73,8 +73,28 @@ M.zotero_telescoper = function(opts)
             true,
             vim
               .iter({
-                '# ' .. entry.value.data.title,
+                '# Title: ' .. entry.value.data.title,
+
+                -- TODO: improve checking for author, adding to preview, and reusing the above code
+                (function()
+                  local creators = entry.value.data.creators
+                  local author = ''
+                  if creators then
+                    if next(creators) then
+                      if creators[1].name then
+                        author = creators[1].name .. ' - '
+                      end
+                      if creators[1].firstName and creators[1].lastName then
+                        author = creators[1].lastName .. ', ' .. creators[1].firstName
+                      end
+                      return '# Author: ' .. author
+                    end
+                    return ''
+                  end
+                  return ''
+                end)(),
                 '',
+
                 '```lua',
                 vim.split(vim.inspect(entry), '\n'),
                 '```',
