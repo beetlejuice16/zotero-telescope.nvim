@@ -8,6 +8,7 @@ local log = require('plenary.log'):new()
 local curl = require('plenary.curl')
 local utils = require('telescope.previewers.utils')
 log.level = 'debug'
+local better_bib = require('zotero-telescope.betterbib')
 local M = {}
 
 local default_opts = {
@@ -96,7 +97,7 @@ M.zotero_telescoper = function(opts)
                 '',
 
                 '```lua',
-                vim.split(vim.inspect(entry), '\n'),
+                vim.split(vim.inspect(entry.value), '\n'),
                 '```',
               })
               :flatten()
@@ -122,9 +123,8 @@ M.setup = function(opts)
   -- TODO: Improve on how the function calls accept parameters from the user
   default_opts = vim.tbl_deep_extend('force', default_opts, opts)
 
-  vim.api.nvim_create_user_command('ZoteroTelescope', function()
-    require('zotero-telescope').zotero_telescoper()
-  end, {})
+  vim.api.nvim_create_user_command('ZoteroTelescope', M.zotero_telescoper, {})
+  vim.api.nvim_create_user_command('ZoteroCite', better_bib.better_bib_cite, {})
 end
 
 return M

@@ -10,40 +10,47 @@ local utils = require('telescope.previewers.utils')
 log.level = 'debug'
 local M = {}
 
----@param base_url? string Default: "http://localhost:23119/better-bibtex/library?/1/library.json" see better bib [docs](https://retorque.re/zotero-better-bibtex/exporting/pull/index.html)
+---@param bibtex_url? string Default: "http://localhost:23119/better-bibtex/library?/1/library.json" see zotero-better-bibtex docs https://retorque.re/zotero-better-bibtex/exporting/pull/index.html
 ---@return table
-M.get_zotero_data_betterbib = function(base_url)
-  local base_url = base_url or 'http://localhost:23119/better-bibtex/library?/1/library.json'
-  local api_endpoint = base_url
+M._get_zotero_data_betterbib = function(bibtex_url)
+  local api_endpoint = bibtex_url or 'http://localhost:23119/better-bibtex/library?/1/library.json'
   local response = curl.get(api_endpoint)
-  local data = response.body
-  local parsed_data = vim.json.decode(data, { array = true })
-  log.debug(parsed_data)
+  local parsed_data = vim.json.decode(response.body, { array = true })
   return parsed_data
 end
 
-M.show_zotero_bib = function(opts)
+M.better_bib_cite = function(opts)
   pickers
     .new(opts, {
       finder = finders.new_table({
-        results = M.get_zotero_data_betterbib(),
+        results = M._get_zotero_data_betterbib(),
         entry_maker = function(entry)
           local display = entry.title
           local authors = entry.author
 
+          local list_authors = {}
           if authors then
             if next(authors) then
-              if authors[1].family then
-                display = authors[1].family .. ', ' .. authors[1].given .. ' - ' .. display
-              end
-              if authors[1].literal then
-                display = authors[1].literal .. ' - ' .. display
+              for _, v in pairs(authors) do
+                if v.family and v.given then
+                  table.insert(list_authors, v.family .. ', ' .. v.given)
+                elseif v.literal then
+                  table.insert(list_authors, v.literal)
+                end
               end
             end
           end
 
-          -- In case we want to extend the ordinal independent from the display
-          local ordinal = display
+          local all_authors = vim.iter(list_authors):join('; ')
+          entry.all_authors = all_authors
+
+          local ordinal = display .. all_authors
+
+          if #list_authors == 1 then
+            display = list_authors[1] .. ' - ' .. display
+          elseif #list_authors > 1 then
+            display = list_authors[1] .. ' et al. - ' .. display
+          end
 
           return {
             value = entry,
@@ -56,9 +63,9 @@ M.show_zotero_bib = function(opts)
       previewer = previewers.new_buffer_previewer({
         title = 'Zotero Entry Details Better BibTex',
         define_preview = function(self, entry)
-          local title = '#'
+          local title = '# Title: '
           if entry.value.title then
-            title = title .. ' ' .. entry.value.title
+            title = title .. entry.value.title
           end
           vim.api.nvim_buf_set_lines(
             self.state.bufnr,
@@ -68,10 +75,17 @@ M.show_zotero_bib = function(opts)
             vim
               .iter({
                 title,
-                '',
+                (function()
+                  local authors = entry.value.all_authors
+                  if authors then
+                    return '# Authors: ' .. authors
+                  end
+                  return ''
+                end)(),
                 '```lua',
-                vim.split(vim.inspect(entry), '\n'),
+                vim.split(vim.inspect(entry.value), '\n'),
                 '```',
+                '',
               })
               :flatten()
               :totable()
@@ -82,17 +96,16 @@ M.show_zotero_bib = function(opts)
       attach_mappings = function(prompt_bufnr)
         actions.select_default:replace(function()
           local selection = actions_state.get_selected_entry()
+          local citation_key = '@' .. selection.value['citation-key']
+
           actions.close(prompt_bufnr)
-          log.debug('Selected', selection)
-          local command = {}
+
+          vim.api.nvim_put({ citation_key }, '', true, true)
         end)
         return true
       end,
     })
     :find()
 end
-
--- M.get_zotero_data_betterbib()
-M.show_zotero_bib()
 
 return M
