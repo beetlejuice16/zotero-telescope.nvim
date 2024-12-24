@@ -9,6 +9,7 @@ local curl = require('plenary.curl')
 local utils = require('telescope.previewers.utils')
 log.level = 'debug'
 local better_bib = require('zotero-telescope.betterbib')
+
 local M = {}
 
 local default_opts = {
@@ -16,6 +17,28 @@ local default_opts = {
   resources = '/items/top',
   parameters = '?sort=dateModified',
 }
+
+---@param entry_authors table pass the entry creators table from the finder here
+---@return table
+M._check_and_format_authors = function(entry_authors)
+  local authors = entry_authors
+  local list_authors = {}
+  if authors then
+    if next(authors) then
+      for _, v in ipairs(authors) do
+        if v.name then
+          table.insert(list_authors, v.name)
+        end
+        if v.firstName and v.lastName then
+          table.insert(list_authors, v.lastName .. ', ' .. v.firstName)
+        end
+      end
+      return list_authors
+    end
+    return {}
+  end
+  return {}
+end
 
 ---@param base_url? string Default: "http://localhost:23119/api/users/0"
 ---@param resources? string Default: "/items/top" see [zotero web api docs](https://www.zotero.org/support/dev/web_api/v3/basics#resources)
@@ -40,21 +63,16 @@ M.zotero_telescoper = function(opts)
         ),
         entry_maker = function(entry)
           local display = entry.data.title
-          local creators = entry.data.creators
 
-          if creators then
-            if next(creators) then
-              if creators[1].name then
-                display = creators[1].name .. ' - ' .. display
-              end
-              if creators[1].firstName and creators[1].lastName then
-                display = creators[1].lastName .. ', ' .. creators[1].firstName .. ' - ' .. display
-              end
-            end
+          local list_authors = M._check_and_format_authors(entry.data.creators)
+          local ordinal = display .. vim.fn.join(list_authors, '; ')
+
+          if #list_authors == 1 then
+            display = list_authors[1] .. ' - ' .. display
           end
-
-          -- In case we want to extend the ordinal independent from the display
-          local ordinal = display
+          if #list_authors > 1 then
+            display = list_authors[1] .. ' et al.' .. ' - ' .. display
+          end
 
           return {
             value = entry,
@@ -76,24 +94,8 @@ M.zotero_telescoper = function(opts)
               .iter({
                 '# Title: ' .. entry.value.data.title,
 
-                -- TODO: improve checking for author, adding to preview, and reusing the above code
-                (function()
-                  local creators = entry.value.data.creators
-                  local author = ''
-                  if creators then
-                    if next(creators) then
-                      if creators[1].name then
-                        author = creators[1].name .. ' - '
-                      end
-                      if creators[1].firstName and creators[1].lastName then
-                        author = creators[1].lastName .. ', ' .. creators[1].firstName
-                      end
-                      return '# Author: ' .. author
-                    end
-                    return ''
-                  end
-                  return ''
-                end)(),
+                '# Authors: '
+                  .. vim.fn.join(M._check_and_format_authors(entry.value.data.creators), '; '),
                 '',
 
                 '```lua',
