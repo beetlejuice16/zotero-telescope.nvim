@@ -1,4 +1,4 @@
-*zotero-telescope.txt*      For NVIM v0.8.0      Last change: 2024 December 24
+*zotero-telescope.txt*      For NVIM v0.8.0      Last change: 2024 December 27
 
 ==============================================================================
 Table of Contents                         *zotero-telescope-table-of-contents*
