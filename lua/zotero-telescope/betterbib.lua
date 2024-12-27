@@ -61,27 +61,21 @@ M.better_bib_cite = function(opts)
       }),
       sorter = config.generic_sorter(opts),
       previewer = previewers.new_buffer_previewer({
-        title = 'Zotero Entry Details Better BibTex',
+        title = 'Zotero Entry Details - Better BibTex',
         define_preview = function(self, entry)
-          local title = '# Title: '
-          if entry.value.title then
-            title = title .. entry.value.title
-          end
-          vim.api.nvim_buf_set_lines(
-            self.state.bufnr,
-            0,
-            0,
-            true,
-            vim
+          local function set_previewer_contents()
+            local title = entry.value.title
+            if title then
+              title = '# Title: ' .. entry.value.title
+            end
+            local authors = entry.value.all_authors
+            if authors then
+              authors = '# Authors: ' .. authors
+            end
+            return vim
               .iter({
                 title,
-                (function()
-                  local authors = entry.value.all_authors
-                  if authors then
-                    return '# Authors: ' .. authors
-                  end
-                  return ''
-                end)(),
+                authors,
                 '```lua',
                 vim.split(vim.inspect(entry.value), '\n'),
                 '```',
@@ -89,7 +83,9 @@ M.better_bib_cite = function(opts)
               })
               :flatten()
               :totable()
-          )
+          end
+
+          vim.api.nvim_buf_set_lines(self.state.bufnr, 0, 0, true, set_previewer_contents())
           utils.highlighter(self.state.bufnr, 'markdown')
         end,
       }),
